@@ -1,56 +1,48 @@
-﻿# 🌐 NetSpeed Pro
+﻿# NetSpeed Pro
 
-A lightweight, native Windows bandwidth governor and network HUD built entirely in PowerShell and WPF.
+A lightweight Windows network HUD and bandwidth throttle utility built in PowerShell and WPF.
 
-NetSpeed Pro solves a specific problem: native Windows networking tools lack un-intrusive, easily accessible, per-app granular tracking for metered connections (like Mobile Hotspots). 
+NetSpeed Pro provides an unobtrusive way to monitor network speeds, track per-app data usage on metered connections, and throttle specific applications.
 
-## 🛡️ Privacy Guarantee (100% Local)
-**NetSpeed Pro is designed with extreme privacy in mind.**
-- **Local Storage Only:** All session data, logs, and configurations are stored as raw JSON files (NetDataLog.json and NetConfig.json) directly in this folder.
-- **No Cloud Sync:** There is no telemetry, no cloud backups, and no external tracking.
-- **Secure Architecture:** The tool simply reads native Windows APIs locally (like WMI and 
-etstat) and logs the results. Your network data never leaves your machine. 
-*(Note: If you clone or fork this repository, the .gitignore specifically excludes these JSON files so you never accidentally upload your personal data to GitHub.)*
+## Privacy & Local Data
+All data remains local.
+- Session history and configuration are saved as JSON files (NetDataLog.json and NetConfig.json) in the project directory.
+- No telemetry, analytics, or cloud sync.
+- Network data is pulled via native Windows APIs (WMI, 
+etstat) and never leaves the machine.
+- Note: The .gitignore excludes personal JSON files to prevent accidental commits.
 
----
+## Features
+- **HUD Overlay:** A borderless, always-on-top UI. Includes a click-through mode so it doesn't block interactions.
+- **Process Tracking:** Maps data usage to specific background processes using 
+etstat and WMI, resolving intermediate shell wrappers to their parent applications.
+- **Session History:** Double-click a session in the dashboard for a breakdown of parent and child process data consumption.
+- **QoS Throttling:** Throttle upload/download speeds for specific apps via the dashboard using Windows QoS policies.
+- **Data Quotas:** Configurable daily limits with visual HUD warnings when exceeded.
+- **Export:** Export session history to CSV.
 
-## ✨ Features
+## Technical Details
+The script (NetSpeedPro.ps1) runs a 1-second background loop:
+1. **Stats:** Queries Get-NetAdapterStatistics for current UL/DL deltas.
+2. **Scanning:** Uses 
+etstat to map active TCP/UDP ports to processes.
+3. **Throttling:** Wraps New-NetQosPolicy to apply bandwidth limits without requiring custom firewall drivers.
+4. **UI:** Renders WPF windows directly from PowerShell (no C# compilation required).
 
-- **Ghost Mode HUD:** A frameless, dark-mode, always-on-top floating UI. Click right through it without interrupting your workflow.
-- **Deep Attribution Engine:** Tracks data usage down to the individual background process using 
-etstat and WMI, actively cutting through invisible shell wrappers (like cmd or powershell) to group usage accurately.
-- **Session Drill-Down Matrix:** Double-click any past session in the Dashboard to see an exact hierarchical breakdown of parent applications and child processes.
-- **QoS Bandwidth Governor:** Rogue app hogging your hotspot? Apply instant upload/download throttles to any active app directly from the dashboard using Windows Quality of Service (QoS) policies.
-- **Daily Quota Alerts:** Set your GB/MB limits for the day. The HUD will flash aggressively if you approach your safety limit.
-- **CSV Data Portability:** One-click export of all session analytics.
+## Setup
 
----
-
-## ⚙️ How It Works (Technical Architecture)
-NetSpeed Pro is a monolithic script (NetSpeedPro.ps1) that executes a 1000ms telemetry loop:
-1. **Network Adapters:** Uses Get-NetAdapterStatistics for high-speed, accurate Delta measurements (Current UL/DL speeds).
-2. **Connection Scanning:** Scans active TCP/UDP ports to resolve PIDs to Applications.
-3. **Bandwidth Throttling:** Utilizes New-NetQosPolicy under the hood to limit apps without installing invasive third-party firewall drivers.
-4. **WPF UI:** Renders native Windows Presentation Foundation (WPF) windows purely from PowerShell, circumventing the need for compiled C# binaries.
-
----
-
-## 🚀 Setup Walkthrough
-
-### 1. Prerequisites
+### Prerequisites
 - Windows 10 or 11
-- Administrator Privileges (The script requires Admin rights to read WMI process trees and apply QoS policies. It is coded to auto-elevate itself upon launch).
+- Administrator privileges (required for WMI process mapping and QoS policies; the script auto-elevates if needed).
 
-### 2. Installation
-1. Download or clone this repository to a secure location (e.g., your Documents folder).
-2. **Right-click** NetSpeedPro.ps1 and select **Run with PowerShell**.
-3. *Optional but recommended:* Create a Desktop Shortcut for instant access. 
-   - Right-click your Desktop -> New -> Shortcut.
-   - For the location, enter: powershell.exe -WindowStyle Hidden -ExecutionPolicy Bypass -File "C:\Path\To\Your\NetSpeedPro.ps1"
-   - Click Next and name it **NetSpeed Pro**.
+### Installation
+1. Clone this repository.
+2. Right-click NetSpeedPro.ps1 and select **Run with PowerShell**.
+3. (Optional) Create a desktop shortcut:
+   - Target: powershell.exe -WindowStyle Hidden -ExecutionPolicy Bypass -File "C:\Path\To\NetSpeedPro.ps1"
 
-### 3. Usage
-- The HUD will instantly appear on your screen.
-- **System Tray:** Find the NetSpeed Pro icon in your Windows taskbar tray (bottom right). Right-click it to access the Dashboard or toggle Ghost Mode.
-- **Dashboard:** Open the Dashboard to view your Session History, set your Daily Quotas, and access the App Bandwidth Throttler.
-
+### Usage
+- The HUD appears on launch.
+- Find the NetSpeed Pro icon in the system tray (bottom right).
+- Right-click the tray icon to open the Dashboard or toggle click-through mode.
+- Use the Dashboard to view history, set quotas, or apply QoS limits.

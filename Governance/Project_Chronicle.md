@@ -1,62 +1,61 @@
-# 🌐 NetSpeed Pro: Universal Project Chronicle
+﻿# NetSpeed Pro - Project History
 
 **Project Status:** Active / v2.5 Stable  
 **Platform:** Windows (PowerShell 5.1+ / WPF / .NET)  
-**Architecture:** Monolithic Script (`NetSpeedPro.ps1`) + JSON State (`NetDataLog.json`, `NetConfig.json`)
+**Architecture:** Monolithic Script (NetSpeedPro.ps1) + JSON State (NetDataLog.json, NetConfig.json)
 
 ---
 
-## 1. Project Vision
-NetSpeed Pro was conceived to solve a specific problem: native Windows networking tools lack lightweight, easily accessible, and per-app granular tracking for metered connections (like Mobile Hotspots). 
-
-The goal was to build a virtually invisible, un-intrusive desktop HUD that tracks live data usage, paired with a powerful Admin Dashboard to drill down into historical analytics and actively control background bandwidth hogs.
+## 1. Project Overview
+NetSpeed Pro tracks network data usage on a per-app basis for Windows environments, aimed primarily at metered connections. It pairs a low-overhead, transparent desktop HUD with a dashboard for historical analytics and bandwidth throttling.
 
 ---
 
-## 2. Development Milestones & Evolution
+## 2. Development Milestones
 
-### Phase 1: The Core HUD (v1.0)
-*   **WPF Overlay:** Created a frameless, transparent, always-on-top floating window.
-*   **Telemetry Engine:** Implemented a 1-second tick loop using `Get-NetAdapterStatistics` to calculate real-time Upload/Download speeds.
-*   **System Integration:** Added a System Tray icon for context menus and introduced **Ghost Mode** (P/Invoke `SetWindowLong`), allowing the user to click *through* the HUD without interrupting their workflow.
+### v1.0 (Core Engine)
+*   **WPF Overlay:** Frameless, transparent floating window.
+*   **Telemetry Loop:** 1-second interval using Get-NetAdapterStatistics for real-time Upload/Download speeds.
+*   **System Integration:** System Tray icon context menu and click-through mode via P/Invoke (SetWindowLong).
 
-### Phase 2: Analytics & Storage (v1.5)
-*   **Data Persistence:** Built a JSON serialization engine to log individual sessions, storing Start/End times, Wi-Fi SSID, and Total Bytes.
-*   **Dashboard UI:** Created a secondary, styled WPF window with a dark-mode Zinc palette (#18181B) to display the Session History DataGrid.
+### v1.5 (Analytics & Storage)
+*   **Data Persistence:** JSON serialization engine logs sessions, storing Start/End times, Wi-Fi SSID, and Total Bytes.
+*   **Dashboard UI:** WPF window with custom dark theme for viewing session history.
 
-### Phase 3: The "Deep Attribution" Engine Upgrade (v2.0)
-*   **Auto-Elevation:** Implemented self-elevating code to ensure the script always runs as Administrator, unlocking deep network metrics and WMI access.
-*   **Multi-App Attribution:** Upgraded from a single "Top App" tracker to a comprehensive scanner that uses `netstat -ano` every second to track *all* apps with `ESTABLISHED` connections, distributing data proportionally.
-*   **Parent/Child Process Resolution:** Wrote a custom WMI tree-walker (`Get-CimInstance Win32_Process`) that maps background workers (like `language_server`) up to their true user-facing applications (like `Antigravity`), explicitly skipping invisible shell intermediaries (`powershell.exe`, `cmd.exe`).
-*   **Drill-Down Breakdown:** Added a double-click event to the Dashboard. Clicking a session opens a new window showing data grouped by parent app. Clicking a parent app row expands a hidden `RowDetailsTemplate` revealing individual child processes and their exact byte usage.
+### v2.0 (Attribution Logic Upgrade)
+*   **Auto-Elevation:** Self-elevating code to run as Administrator for WMI/network metrics access.
+*   **Multi-App Attribution:** Scanner uses 
+etstat -ano per tick to track active connections, distributing bytes proportionally.
+*   **Process Resolution:** Custom WMI tree-walker (Get-CimInstance Win32_Process) maps background processes to their parent applications, skipping intermediate shells (e.g., powershell.exe).
+*   **Session Drill-Down:** Dashboard supports double-clicking a session to view parent/child process data usage via a RowDetailsTemplate DataGrid.
 
-### Phase 4: Active Governor & Control (v2.5)
-*   **QoS Bandwidth Throttler:** Built a Tools & Settings tab leveraging Windows `New-NetQosPolicy`. 
-*   **Smart UX:** Replaced manual text inputs with an auto-populating `ComboBox` that reads the current session's active apps. 
-*   **Live Policy Tracking:** Added an active monitoring text block that queries Windows for live limits, turning Red when an app is currently throttled and Green when clear.
-*   **Quota Safety Limits:** Added persistent daily data limits (`NetConfig.json`). The HUD calculates today's total data separately from the current session's data, preparing to warn the user if the quota is approached.
+### v2.5 (QoS Integration)
+*   **Bandwidth Throttling:** UI wrapper around Windows New-NetQosPolicy.
+*   **App Selection:** Auto-populating ComboBox showing apps from the current session.
+*   **Policy Tracking:** Queries and displays active QoS limits in the dashboard.
+*   **Data Quotas:** Configurable daily limits saved to NetConfig.json, with visual HUD warnings.
 
 ---
 
-## 3. Core Engine Architecture
+## 3. Architecture
 
-1.  **The Tick Loop (1000ms Timer)**
-    *   *Every 1 sec:* Calculates global speed delta. Scans active PIDs. Distributes bytes to Parent/Child caches. Updates XAML UI bindings.
-    *   *Every 10 sec:* Checks Wi-Fi SSID to detect Hotspot switches.
-    *   *Every 30 sec:* Commits the current session state to `NetDataLog.json` to prevent data loss on sudden shutdown.
+1.  **Event Loop (1000ms)**
+    *   *Every 1s:* Calculate speed delta, scan active PIDs, distribute bytes to process caches, update XAML bindings.
+    *   *Every 10s:* Check Wi-Fi SSID for connection changes.
+    *   *Every 30s:* Save session state to NetDataLog.json.
 2.  **State Management**
-    *   All UI variables and data arrays are held in the `$script:` scope to survive WPF's non-blocking `$window.Show()` event boundaries.
-3.  **Theme & Styling**
-    *   Fully custom XAML templates overriding default Windows UI elements. Uses #18181B (Background), #27272A (Surface), #F472B6 (Pink Accents), and #34D399 (Green Success).
+    *   Variables are maintained in the $script: scope to persist across non-blocking WPF ($window.Show()) event handlers.
+3.  **UI Design**
+    *   Custom XAML templates overriding default controls.
 
 ---
 
-## 4. Current Capabilities Summary
+## 4. Feature Summary
 
-*   **HUD:** Live UL/DL speed, Current Session Total, Today's Total, Parent App Currently Using the Most Data.
-*   **History:** Scrollable log of all past sessions, formatted with readable dates (MMM dd - HH:mm) and sizes (KB/MB/GB).
-*   **Drill-Down:** Double-click any session to see exactly which apps (and child processes) consumed data during that specific time frame.
-*   **Throttler:** One-click application of strict Upload/Download limits to any rogue app hogging the hotspot.
-*   **Settings:** Export to CSV, Quota Management, Remove All Limits.
+*   **HUD:** Live UL/DL speed, Current Session Total, Today's Total, Top App.
+*   **History:** Log of past sessions (MMM dd - HH:mm) and data sizes.
+*   **Drill-Down:** Parent/child process breakdowns per session.
+*   **Throttling:** Apply Upload/Download limits to background apps.
+*   **Settings:** CSV Export, Quota Management, Limit Removal.
 
-*Chronicle recorded as of September 30, 2026. The foundation is stable and ready for future expansions.*
+*Last Updated: 2026-09-30*

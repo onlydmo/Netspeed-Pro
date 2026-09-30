@@ -1,32 +1,34 @@
-# NetSpeed Pro Suite: v2 Upgrade Plan
+﻿# NetSpeed Pro - Implementation Plan (v2.0 - v2.5)
 
 ## Overview
-Based on your feedback, we are expanding the Dashboard into a fully interactive command center. The script will be upgraded to run as Administrator by default, unlocking powerful new tools like exact per-app data tracking, one-click bandwidth throttling, and editable data caps.
+This plan outlines the upgrades required to expand the Dashboard into an interactive command center, incorporating auto-elevation, per-app data tracking, bandwidth throttling, and configurable data caps.
 
 ---
 
-## Proposed Changes
+## Component Changes
 
-### 1. Auto-Elevation (Administrator Mode)
-* **Self-Elevating Engine:** The script will check its permissions on startup. If it is not running as Administrator, it will automatically relaunch itself using `RunAs`. This ensures it always has the permissions required to apply QoS limits and accurately read network stacks.
+### 1. Privilege Escalation
+* **Auto-Elevation:** Check permissions on startup. If not elevated, restart the process using RunAs. Required for New-NetQosPolicy and WMI process mapping.
 
-### 2. Per-App Data Breakdown & Drill-Down UI
-* **App-Bandwidth Attribution Engine:** Instead of just logging one "Top App", the background engine will calculate and distribute the downloaded bytes to the active apps every second. This generates a complete profile of how much data *each* app used during a session.
-* **Interactive Dashboard:** You will be able to **double-click** any session in the History Table. This will open a new "Session Details" view showing a list of every app that consumed data during that session.
-* **Sorting Filters:** The detailed view will include column headers that can be clicked to sort the apps from Highest Data Used to Lowest (and vice versa).
+### 2. Data Attribution & Drill-Down
+* **Attribution Engine:** Modify the background loop to attribute downloaded/uploaded bytes proportionally to all active TCP/UDP connections rather than a single "Top App".
+* **Dashboard Drill-Down:** Add a double-click event to the session history DataGrid to open a hierarchical view.
+* **Process Mapping:** Implement a RowDetailsTemplate showing parent applications and their associated child processes.
 
-### 3. Interactive Bandwidth Throttler (QoS UI)
-* **Throttle Button:** The "Tools & Settings" tab will be upgraded with a functional UI for the QoS Throttler.
-* **Inputs:** You can type in an app name (e.g., `msedge.exe`), select a speed limit (e.g., `500 KB/s`), and click an **"Apply Limit"** button to throttle it instantly.
-* **Reset Button:** A "Remove All Limits" button to instantly restore full speed to all apps.
+### 3. QoS Throttling UI
+* **Throttler Controls:** Add UI components in the "Tools & Settings" tab to manage QoS policies.
+* **App Selection:** Implement a ComboBox populated with active apps from the current session.
+* **Policy Management:** Add "Apply" and "Remove All" buttons, wrapping New-NetQosPolicy and Remove-NetQosPolicy.
+* **Active Limits Display:** Add a visual indicator showing currently active policies.
 
-### 4. Editable Daily Quota
-* **Quota Settings:** A new section in the "Tools & Settings" tab will allow you to type in your custom Daily Quota (e.g., `2.5 GB` or `500 MB`).
-* **Save Config:** Clicking "Save Quota" will permanently store this limit so the HUD knows exactly when to warn you or trigger the safety disconnect on future runs.
+### 4. Quota Configuration
+* **Editable Quotas:** Add inputs in "Tools & Settings" to configure daily data limits (MB/GB).
+* **Persistence:** Save limits to NetConfig.json and load on startup.
+* **Visual Warning:** Update the HUD tick loop to flash warning colors if $script:dailyBytes exceeds the configured quota.
 
 ---
 
-## Verification Plan
-1. Launch the script normally and verify the Windows UAC prompt appears to elevate it to Admin.
-2. Generate network traffic with multiple apps (e.g., Edge, Spotify), double-click the session in the Dashboard, and verify the Per-App Breakdown accurately reflects the data distribution.
-3. Throttle an app via the new UI button and verify `Get-NetQosPolicy` registers the rule.
+## Verification
+1. Verify the script triggers a UAC prompt on launch if not elevated.
+2. Generate multi-app traffic, double-click the session in the Dashboard, and confirm the RowDetailsTemplate displays correct child processes.
+3. Apply a throttle via the UI and verify Get-NetQosPolicy registers the rule.
