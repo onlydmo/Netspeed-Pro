@@ -1,0 +1,10 @@
+- [x] Auto-Elevation Engine
+- [x] Date/Time Formatting Fix
+- [x] Formatted Bytes Conversion
+- [x] Daily Quota UI + Persistence
+- [x] QoS Bandwidth Throttler UI
+- [x] Multi-App `netstat` attribution Engine
+- [x] Parent/Child WMI resolution (skipping shells)
+- [x] Session Drill-down Breakdowns
+- [x] Active Limits live-tracker
+- [x] Export to CSV

@@ -1,0 +1,7 @@
+﻿# Exclude personal usage data and configurations to ensure privacy
+NetDataLog.json
+NetConfig.json
+
+# Exclude debug/error logs
+*.log
+debug_drill.txt
